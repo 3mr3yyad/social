@@ -1,4 +1,4 @@
-import { IUser } from "../../../utils/common/interface";
+import { IUser } from "../../../utils";
 import { User } from "./user.model";
 import { AbstractRepository } from "../../abstract.repository";
 import { RootFilterQuery } from "mongoose";

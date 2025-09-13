@@ -1,4 +1,4 @@
-import { GENDER, SYS_ROLE, USER_AGENT } from "../../../utils/common/enums";
+import { GENDER, SYS_ROLE, USER_AGENT } from "../../../utils";
 
 export class User {
     public fullName!: string;

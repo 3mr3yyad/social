@@ -1,10 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { LoginDto, RegisterDto, VerifyEmailDto } from "./auth.dto";
-import { ConflictException, NotFoundException, UnauthorizedException } from "../../utils/error";
-import { UserRepository } from "../../DB/model/user/user.repository";
+import { ConflictException, NotFoundException, UnauthorizedException, compareHash, sendEmail } from "../../utils";
+import { UserRepository } from "../../DB";
 import { AuthFactoryService } from "./factory";
-import { compareHash } from "../../utils/hash";
-import { sendEmail } from "../../utils/email";
 
 class AuthService {
     private userRepository = new UserRepository();
@@ -15,12 +13,14 @@ class AuthService {
     register = async (req: Request, res: Response, next: NextFunction) => {
         const registerDTO: RegisterDto = req.body;
 
+        
+
         const userExists = await this.userRepository.exists({ email: registerDTO.email });
         if (userExists) {
             throw new ConflictException("User already exists");
         }
 
-        const user = this.authFactoryService.register(registerDTO);
+        const user = await this.authFactoryService.register(registerDTO);
 
         const createdUser = await this.userRepository.create(user);
 
