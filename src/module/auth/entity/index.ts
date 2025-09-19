@@ -11,4 +11,5 @@ export class User {
     public userAgent!: USER_AGENT;
     public otp!: string;
     public otpExpiry!: Date;
+    public isVerified!: boolean;
 }

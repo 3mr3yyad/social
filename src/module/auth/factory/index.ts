@@ -15,6 +15,7 @@ export class AuthFactoryService {
         user.otp = generateOTP()
         user.otpExpiry = generateExpiryTime(5 * 60 * 60 * 1000)
         user.cridentialsUpdatedAt = Date.now() as unknown as Date
+        user.isVerified = false
         return user
     }
 }

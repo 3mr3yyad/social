@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { GENDER, IUser, SYS_ROLE, USER_AGENT } from "../../../utils";
+import { GENDER, IUser, sendEmail, SYS_ROLE, USER_AGENT } from "../../../utils";
 
 export const userSchema = new Schema<IUser>({
     fristName: {
@@ -67,4 +67,15 @@ userSchema.virtual("fullName")
     const [fName, lName] = value.split(" ");
     this.fristName = fName as string;
     this.lastName = lName as string;
-})
+    })
+
+userSchema.pre("save", async function (next) {
+        if(this.userAgent != USER_AGENT.google && this.isNew)
+            await sendEmail({
+                    to: this.email,
+                    subject: "Verify your email",
+                    html: `<h1>Verify your email</h1>
+                    <p>Your confirmation -otp- code is: <b><mark>${this.otp}</mark></b></p>
+                    <p><em>OTP will expire in <strong>5 minutes</strong></em></p>`
+                })
+    })

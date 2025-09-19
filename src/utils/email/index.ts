@@ -1,16 +1,18 @@
 import nodemailer from "nodemailer";
+import { devConfig } from "../../config/env/dev.config";
+import { MailOptions } from "nodemailer/lib/sendmail-transport";
 
-export async function sendEmail({to, subject, html}: {to:string, subject:string, html:string}) {
+export async function sendEmail({to, subject, html}: MailOptions) {
     const transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
         auth: {
-            user: process.env.EMAIL,
-            pass: process.env.EMAIL_PASSWORD
+            user: devConfig.EMAIL,
+            pass: devConfig.EMAIL_PASSWORD
         }
     });
     await transporter.sendMail({
-        from: `"Social app" <${process.env.EMAIL}>`,
+        from: `"Social app" <${devConfig.EMAIL}>`,
         to,
         subject,
         html

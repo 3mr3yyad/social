@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isValid = void 0;
-const error_1 = require("../utils/error");
+const utils_1 = require("../utils");
 const isValid = (schema) => {
     return (req, res, next) => {
         let data = { ...req.body, ...req.query, ...req.params };
@@ -11,7 +11,7 @@ const isValid = (schema) => {
                 field: issue.path[0],
                 message: issue.message
             }));
-            throw new error_1.BadRequestException("Validation failed", errMessage);
+            throw new utils_1.BadRequestException("Validation failed", errMessage);
         }
     };
 };

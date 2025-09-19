@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userSchema = void 0;
 const mongoose_1 = require("mongoose");
-const enums_1 = require("../../../utils/common/enums");
+const utils_1 = require("../../../utils");
 exports.userSchema = new mongoose_1.Schema({
     fristName: {
         type: String,
@@ -30,7 +30,7 @@ exports.userSchema = new mongoose_1.Schema({
     password: {
         type: String,
         required: function () {
-            return this.userAgent == enums_1.USER_AGENT.local ? true : false;
+            return this.userAgent == utils_1.USER_AGENT.local ? true : false;
         }
     },
     cridentialsUpdatedAt: {
@@ -38,14 +38,14 @@ exports.userSchema = new mongoose_1.Schema({
     },
     role: {
         type: String,
-        enum: enums_1.SYS_ROLE,
-        default: enums_1.SYS_ROLE.user
+        enum: utils_1.SYS_ROLE,
+        default: utils_1.SYS_ROLE.user
     },
-    gender: { type: String, enum: enums_1.GENDER, default: enums_1.GENDER.male },
+    gender: { type: String, enum: utils_1.GENDER, default: utils_1.GENDER.male },
     userAgent: {
         type: String,
-        enum: enums_1.USER_AGENT,
-        default: enums_1.USER_AGENT.local
+        enum: utils_1.USER_AGENT,
+        default: utils_1.USER_AGENT.local
     },
     otp: {
         type: String
@@ -66,4 +66,14 @@ exports.userSchema.virtual("fullName")
     const [fName, lName] = value.split(" ");
     this.fristName = fName;
     this.lastName = lName;
+});
+exports.userSchema.pre("save", async function (next) {
+    if (this.userAgent != utils_1.USER_AGENT.google && this.isNew)
+        await (0, utils_1.sendEmail)({
+            to: this.email,
+            subject: "Verify your email",
+            html: `<h1>Verify your email</h1>
+                    <p>Your confirmation -otp- code is: <b><mark>${this.otp}</mark></b></p>
+                    <p><em>OTP will expire in <strong>5 minutes</strong></em></p>`
+        });
 });
