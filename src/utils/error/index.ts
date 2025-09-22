@@ -35,3 +35,4 @@ export class ConflictException extends AppError {
         super(message, 409, errorDetails);
     }
 }
+

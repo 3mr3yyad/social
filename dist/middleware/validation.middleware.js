@@ -13,6 +13,7 @@ const isValid = (schema) => {
             }));
             throw new utils_1.BadRequestException("Validation failed", errMessage);
         }
+        return next();
     };
 };
 exports.isValid = isValid;

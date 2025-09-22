@@ -13,5 +13,6 @@ export const isValid = (schema: ZodType) => {
             }))
             throw new BadRequestException("Validation failed", errMessage);
         }
+        return next();
     }
 }
