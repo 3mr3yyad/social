@@ -1,7 +1,7 @@
 import type {  Express, Request, Response, NextFunction } from "express";
 import { connectDB } from "./DB";
 import { AppError } from "./utils";
-import { authRouter, userRouter } from "./module";
+import { authRouter, postRouter, userRouter } from "./module";
 
 export function bootStrap(app: Express, express: any) {
     connectDB();
@@ -12,6 +12,9 @@ export function bootStrap(app: Express, express: any) {
 
     // user
     app.use("/user", userRouter);
+
+    // post
+    app.use("/post", postRouter);
 
 
     app.use("/{*dummy}", (req: Request, res: Response) => {

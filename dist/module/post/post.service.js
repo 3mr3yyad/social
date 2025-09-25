@@ -1,0 +1,35 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const factory_1 = require("./factory");
+const post_repository_1 = require("../../DB/model/post/post.repository");
+const utils_1 = require("../../utils");
+class PostService {
+    postFactoryService = new factory_1.PostFactoryService();
+    postRepository = new post_repository_1.PostRepository();
+    createPost = async (req, res) => {
+        const createPostDTO = req.body;
+        const post = this.postFactoryService.createPost(createPostDTO, req.user);
+        const createdPost = await this.postRepository.create(post);
+        return res.status(201).json({ message: "Post created successfully", success: true, post: { createdPost } });
+    };
+    addReaction = async (req, res) => {
+        const { id } = req.params;
+        const { reaction } = req.body;
+        const userId = req.user._id;
+        const postExists = await this.postRepository.exists({ _id: id });
+        if (!postExists) {
+            throw new utils_1.NotFoundException("Post not found");
+        }
+        let userReactionIndex = postExists.reactions.findIndex((reaction) => {
+            return reaction.userId.toString() == userId.toString();
+        });
+        if (userReactionIndex == -1) {
+            await this.postRepository.update({ _id: id }, { $push: { reactions: { reaction, userId } } });
+        }
+        else {
+            await this.postRepository.update({ _id: id, "reactions.userId": userId }, { "reactions.$.reaction": reaction });
+        }
+        return res.sendStatus(204);
+    };
+}
+exports.default = new PostService();

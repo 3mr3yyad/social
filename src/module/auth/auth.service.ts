@@ -1,9 +1,10 @@
 import type { Request, Response } from "express";
 import { LoginDto, RegisterDto, VerifyEmailDTO } from "./auth.dto";
-import { ConflictException, NotFoundException, UnauthorizedException, compareHash } from "../../utils";
+import { ConflictException, ForbiddenException, NotFoundException, compareHash } from "../../utils";
 import { UserRepository } from "../../DB";
 import { AuthFactoryService } from "./factory";
 import { authProvider } from "./provider/auth.provider";
+import { generateToken } from "../../utils/token";
 
 class AuthService {
     private userRepository = new UserRepository();
@@ -36,26 +37,29 @@ class AuthService {
     login = async (req: Request, res: Response) => {
         const loginDTO: LoginDto = req.body;
 
-        const user = await this.userRepository.getOne({ email: loginDTO.email });
+        const user = await this.userRepository.exists({ email: loginDTO.email });
 
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
-        const isPasswordMatched = compareHash(loginDTO.password, user.password);
+        if (!user.isVerified) {
+            throw new ForbiddenException("User is not verified");
+        }
+
+        const isPasswordMatched = await compareHash(loginDTO.password, user.password);
 
         if (!isPasswordMatched) {
-            throw new UnauthorizedException("Invalid credentials");
+            throw new ForbiddenException("Invalid credentials");
         }
 
-        if (!user.isVerified) {
-            throw new UnauthorizedException("User is not verified");
-        }
+        const accessToken = generateToken({ payload: { _id: user._id, role: user.role, fullName: user.fullName, gender: user.gender} });
 
         return res.status(200)
             .json({
                 message: "User logged in successfully",
-                success: true
+                success: true,
+                data: accessToken
             });
     }
 

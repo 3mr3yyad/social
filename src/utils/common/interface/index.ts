@@ -1,6 +1,14 @@
-import { GENDER, SYS_ROLE, USER_AGENT } from "../enums";
+import { JwtPayload } from "jsonwebtoken";
+import { GENDER, REACTION, SYS_ROLE, USER_AGENT } from "../enums";
+import { ObjectId } from "mongoose";
+
+export interface IAttachment {
+    id: string;
+    url: string;
+}
 
 export interface IUser {
+    _id: ObjectId;
     fristName: string;
     lastName: string;
     fullName?: string;
@@ -14,4 +22,42 @@ export interface IUser {
     otp?: string;
     otpExpiry?: Date;
     isVerified?: boolean;
+}
+
+export interface IReaction {
+    reaction: REACTION;
+    userId: ObjectId;
+}
+
+export interface IPost {
+    userId: ObjectId;
+    content: string;
+    reactions: IReaction[];
+    attachments?: IAttachment[];
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface IPayLoad extends JwtPayload {
+    _id: string;
+    role: SYS_ROLE;
+    fullName: string;
+    gender: GENDER;
+}
+
+declare module "jsonwebtoken" {
+    interface JwtPayload {
+        _id: string;
+        role: SYS_ROLE;
+        fullName: string;
+        gender: GENDER;
+    }
+}
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: IUser;
+        }
+    }
 }

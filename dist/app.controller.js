@@ -10,6 +10,8 @@ function bootStrap(app, express) {
     app.use("/auth", module_1.authRouter);
     // user
     app.use("/user", module_1.userRouter);
+    // post
+    app.use("/post", module_1.postRouter);
     app.use("/{*dummy}", (req, res) => {
         return res.status(404).send({ message: "Not Found", success: false });
     });

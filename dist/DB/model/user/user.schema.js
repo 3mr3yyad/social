@@ -37,13 +37,13 @@ exports.userSchema = new mongoose_1.Schema({
         type: Date
     },
     role: {
-        type: String,
+        type: Number,
         enum: utils_1.SYS_ROLE,
         default: utils_1.SYS_ROLE.user
     },
-    gender: { type: String, enum: utils_1.GENDER, default: utils_1.GENDER.male },
+    gender: { type: Number, enum: utils_1.GENDER, default: utils_1.GENDER.male },
     userAgent: {
-        type: String,
+        type: Number,
         enum: utils_1.USER_AGENT,
         default: utils_1.USER_AGENT.local
     },
