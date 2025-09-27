@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { CreatePostDTO } from "./post.dto";
 import { PostFactoryService } from "./factory";
-import { PostRepository } from "../../DB/model/post/post.repository";
-import { NotFoundException } from "../../utils";
+import { PostRepository } from "../../DB";
+import { NotFoundException, REACTION } from "../../utils";
 
 class PostService {
     private readonly postFactoryService = new PostFactoryService();
@@ -34,8 +34,23 @@ class PostService {
         })
 
         if (userReactionIndex == -1) {
-            await this.postRepository.update({ _id: id }, { $push: { reactions: { reaction, userId } } })
-        } else {
+            await this.postRepository.update(
+                { _id: id },
+                {
+                    $push: {
+                        reactions: {
+                            reaction,
+                            userId
+                        }
+                    }
+                })
+        }
+        else if ([undefined, null, ""].includes(reaction)) {
+            await this.postRepository.update(
+                { _id: id },
+                { $pull: { reactions: postExists.reactions[userReactionIndex] } })
+        }
+        else {
             await this.postRepository.update(
                 { _id: id, "reactions.userId": userId },
                 { "reactions.$.reaction": reaction })
@@ -43,6 +58,7 @@ class PostService {
     
         return res.sendStatus(204)
     }
+    
 }
 
 export default new PostService()

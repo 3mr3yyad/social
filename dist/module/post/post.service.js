@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const factory_1 = require("./factory");
-const post_repository_1 = require("../../DB/model/post/post.repository");
+const DB_1 = require("../../DB");
 const utils_1 = require("../../utils");
 class PostService {
     postFactoryService = new factory_1.PostFactoryService();
-    postRepository = new post_repository_1.PostRepository();
+    postRepository = new DB_1.PostRepository();
     createPost = async (req, res) => {
         const createPostDTO = req.body;
         const post = this.postFactoryService.createPost(createPostDTO, req.user);
@@ -24,7 +24,17 @@ class PostService {
             return reaction.userId.toString() == userId.toString();
         });
         if (userReactionIndex == -1) {
-            await this.postRepository.update({ _id: id }, { $push: { reactions: { reaction, userId } } });
+            await this.postRepository.update({ _id: id }, {
+                $push: {
+                    reactions: {
+                        reaction,
+                        userId
+                    }
+                }
+            });
+        }
+        else if ([undefined, null, ""].includes(reaction)) {
+            await this.postRepository.update({ _id: id }, { $pull: { reactions: postExists.reactions[userReactionIndex] } });
         }
         else {
             await this.postRepository.update({ _id: id, "reactions.userId": userId }, { "reactions.$.reaction": reaction });
