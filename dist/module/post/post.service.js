@@ -46,7 +46,8 @@ class PostService {
         const post = await this.postRepository.getOne({ _id: id }, {}, {
             populate: [
                 { path: "userId", select: "fullName fristName lastName profilePicture" },
-                { path: "reactions.userId", select: "fullName fristName lastName profilePicture" }
+                { path: "reactions.userId", select: "fullName fristName lastName profilePicture" },
+                { path: "comments", match: { parentId: [] } }
             ]
         });
         if (!post) {
