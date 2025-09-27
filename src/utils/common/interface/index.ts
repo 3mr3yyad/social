@@ -30,12 +30,23 @@ export interface IReaction {
 }
 
 export interface IPost {
+    _id: ObjectId;
     userId: ObjectId;
     content: string;
     reactions: IReaction[];
     attachments?: IAttachment[];
     createdAt: Date;
     updatedAt: Date;
+}
+
+export interface IComment {
+    _id: ObjectId;
+    userId: ObjectId;
+    postId: ObjectId;
+    parentId: ObjectId[];
+    content: string;
+    attachments?: IAttachment[];
+    reactions: IReaction[];
 }
 
 export interface IPayLoad extends JwtPayload {

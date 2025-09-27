@@ -41,5 +41,18 @@ class PostService {
         }
         return res.sendStatus(204);
     };
+    getSpacificPost = async (req, res) => {
+        const { id } = req.params;
+        const post = await this.postRepository.getOne({ _id: id }, {}, {
+            populate: [
+                { path: "userId", select: "fullName fristName lastName profilePicture" },
+                { path: "reactions.userId", select: "fullName fristName lastName profilePicture" }
+            ]
+        });
+        if (!post) {
+            throw new utils_1.NotFoundException("Post not found");
+        }
+        return res.status(200).json({ success: true, data: { post } });
+    };
 }
 exports.default = new PostService();

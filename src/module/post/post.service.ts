@@ -58,7 +58,24 @@ class PostService {
     
         return res.sendStatus(204)
     }
-    
+
+    public getSpacificPost = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const post = await this.postRepository.getOne({ _id: id },
+            {},
+            {
+                populate: [
+                    { path: "userId", select: "fullName fristName lastName profilePicture" },
+                    { path: "reactions.userId", select: "fullName fristName lastName profilePicture" }
+                ]
+            });
+
+        if (!post) {
+            throw new NotFoundException("Post not found");
+        }
+
+        return res.status(200).json({ success: true, data:{post} })
+    }
 }
 
 export default new PostService()
