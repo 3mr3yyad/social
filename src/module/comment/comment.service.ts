@@ -17,7 +17,6 @@ class CommentService {
         const postExists = await this.postRepository.exists({ _id: postId });
 
         if (!postExists) {
-            console.log(postId);
             throw new NotFoundException("Post not found");
         }
 

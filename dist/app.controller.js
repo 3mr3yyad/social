@@ -12,12 +12,14 @@ function bootStrap(app, express) {
     app.use("/user", module_1.userRouter);
     // post
     app.use("/post", module_1.postRouter);
+    // comment
+    app.use("/comment", module_1.commentRouter);
     app.use("/{*dummy}", (req, res) => {
         return res.status(404).send({ message: "Not Found", success: false });
     });
     app.use((error, req, res, next) => {
         return res
             .status(error.statusCode || 500)
-            .json({ message: error.message, success: false });
+            .json({ message: error.message, success: false, stack: error.stack });
     });
 }

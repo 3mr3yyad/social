@@ -15,9 +15,8 @@ export const commentSchema = new Schema<IComment>(
             required: true
         },
         parentId: {
-            type: [Schema.Types.ObjectId],
-            ref: "Comment",
-            default: []
+            type: Schema.Types.ObjectId,
+            ref: "Comment"
         },
         content: {
             type: String,

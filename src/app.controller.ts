@@ -1,7 +1,7 @@
 import type {  Express, Request, Response, NextFunction } from "express";
 import { connectDB } from "./DB";
 import { AppError } from "./utils";
-import { authRouter, postRouter, userRouter } from "./module";
+import { authRouter, commentRouter, postRouter, userRouter } from "./module";
 
 export function bootStrap(app: Express, express: any) {
     connectDB();
@@ -16,6 +16,9 @@ export function bootStrap(app: Express, express: any) {
     // post
     app.use("/post", postRouter);
 
+    // comment
+    app.use("/comment", commentRouter);
+
 
     app.use("/{*dummy}", (req: Request, res: Response) => {
         return res.status(404).send({message:"Not Found", success:false});
@@ -24,6 +27,6 @@ export function bootStrap(app: Express, express: any) {
     app.use((error:AppError, req:Request, res:Response, next:NextFunction)=>{
         return res
             .status(error.statusCode || 500)
-            .json({ message: error.message, success: false });
+            .json({ message: error.message, success: false, stack: error.stack });
     })
 }

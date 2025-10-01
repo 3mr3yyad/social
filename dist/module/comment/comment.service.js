@@ -12,7 +12,6 @@ class CommentService {
         const createCommentDTO = req.body;
         const postExists = await this.postRepository.exists({ _id: postId });
         if (!postExists) {
-            console.log(postId);
             throw new utils_1.NotFoundException("Post not found");
         }
         let commentExists;

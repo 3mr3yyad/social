@@ -15,9 +15,8 @@ exports.commentSchema = new mongoose_1.Schema({
         required: true
     },
     parentId: {
-        type: [mongoose_1.Schema.Types.ObjectId],
-        ref: "Comment",
-        default: []
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Comment"
     },
     content: {
         type: String,
