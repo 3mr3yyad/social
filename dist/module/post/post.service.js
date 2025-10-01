@@ -47,7 +47,7 @@ class PostService {
             populate: [
                 { path: "userId", select: "fullName fristName lastName profilePicture" },
                 { path: "reactions.userId", select: "fullName fristName lastName profilePicture" },
-                { path: "comments", match: { parentId: [] } }
+                { path: "comments", match: { parentId: undefined } }
             ]
         });
         if (!post) {
