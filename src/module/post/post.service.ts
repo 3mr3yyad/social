@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { CreatePostDTO } from "./post.dto";
 import { PostFactoryService } from "./factory";
 import { PostRepository } from "../../DB";
-import { NotFoundException, REACTION } from "../../utils";
+import { NotFoundException, UnauthorizedException } from "../../utils";
 
 class PostService {
     private readonly postFactoryService = new PostFactoryService();
@@ -76,6 +76,19 @@ class PostService {
         }
 
         return res.status(200).json({ success: true, data:{post} })
+    }
+
+    public deletePost = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const postExists = await this.postRepository.exists({ _id: id });
+        if (!postExists) {
+            throw new NotFoundException("Post not found");
+        }
+        if (postExists.userId.toString() != req.user!._id.toString()) {
+            throw new UnauthorizedException("You are not authorized to delete this post");
+        }
+        await this.postRepository.delete({ _id: id });
+        return res.status(200).json({ success: true, message: "Post deleted with comments successfully" })
     }
 }
 
