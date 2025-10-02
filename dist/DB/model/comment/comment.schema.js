@@ -39,4 +39,9 @@ exports.commentSchema = new mongoose_1.Schema({
     reactions: {
         type: [common_1.reactionSchema]
     }
-}, { timestamps: true });
+}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
+exports.commentSchema.virtual("replies", {
+    ref: "Comment",
+    localField: "_id",
+    foreignField: "parentId"
+});
