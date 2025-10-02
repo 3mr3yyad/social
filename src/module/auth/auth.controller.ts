@@ -6,6 +6,6 @@ import * as authValidation from "./auth.validation";
 const router = Router();
 
 router.post("/register", isValid(authValidation.registerSchema), AuthService.register)
-router.post("/login", AuthService.login)
+router.post("/login", isValid(authValidation.loginSchema), AuthService.login)
 router.post("/verify-email", AuthService.verifyEmail)
 export default router;

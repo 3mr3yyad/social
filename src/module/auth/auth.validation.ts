@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { GENDER } from "../../utils";
-import { RegisterDto } from "./auth.dto";
+import { LoginDto, RegisterDto } from "./auth.dto";
 
 export const registerSchema = z.object<RegisterDto>({
     fullName: z.string().min(3).max(50) as unknown as string,
@@ -9,3 +9,9 @@ export const registerSchema = z.object<RegisterDto>({
     password: z.string().min(8).max(50) as unknown as string,
     gender: z.enum(GENDER) as unknown as GENDER,
 });
+
+export const loginSchema = z.object<LoginDto>({
+    email: z.email() as unknown as string,
+    password: z.string().min(8).max(50) as unknown as string,
+});
+
