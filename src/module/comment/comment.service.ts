@@ -9,7 +9,7 @@ class CommentService {
     private readonly commentRepository = new CommentRepository();
     private readonly commentFactoryService = new CommentFactoryService();
 
-    create = async (req: Request, res: Response) => {
+    public create = async (req: Request, res: Response) => {
         const { postId, id } = req.params;
         const createCommentDTO: CreateCommentDTO = req.body;
 
@@ -37,7 +37,7 @@ class CommentService {
         return res.status(201).json({ message: "Comment created successfully", success: true, data: {createdComment} })
     }
 
-    getSpecific = async (req: Request, res: Response) => {
+    public getSpecific = async (req: Request, res: Response) => {
         const { id } = req.params;
         const comment = await this.commentRepository.getOne({ _id: id }, {},
             {populate: [
@@ -47,6 +47,16 @@ class CommentService {
             throw new NotFoundException("Comment not found");
         }
         return res.status(200).json({ success: true, data: { comment } })
+    }
+
+    public deleteComment = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const commentExists = await this.commentRepository.exists({ _id: id });
+        if (!commentExists) {
+            throw new NotFoundException("Comment not found");
+        }
+        await this.commentRepository.delete({ _id: id });
+        return res.status(200).json({ success: true, message: "Comment deleted with replies successfully" })
     }
 }
 

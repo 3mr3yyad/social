@@ -25,7 +25,7 @@ class CommentService {
         const createdComment = await this.commentRepository.create(comment);
         return res.status(201).json({ message: "Comment created successfully", success: true, data: { createdComment } });
     };
-    getSpacific = async (req, res) => {
+    getSpecific = async (req, res) => {
         const { id } = req.params;
         const comment = await this.commentRepository.getOne({ _id: id }, {}, { populate: [
                 { path: "replies", match: { parentId: id }, select: "fullName fristName lastName profilePicture" }
@@ -34,6 +34,15 @@ class CommentService {
             throw new utils_1.NotFoundException("Comment not found");
         }
         return res.status(200).json({ success: true, data: { comment } });
+    };
+    deleteComment = async (req, res) => {
+        const { id } = req.params;
+        const commentExists = await this.commentRepository.exists({ _id: id });
+        if (!commentExists) {
+            throw new utils_1.NotFoundException("Comment not found");
+        }
+        await this.commentRepository.delete({ _id: id });
+        return res.status(200).json({ success: true, message: "Comment deleted with replies successfully" });
     };
 }
 exports.default = new CommentService();

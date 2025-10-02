@@ -27,6 +27,6 @@ export function bootStrap(app: Express, express: any) {
     app.use((error:AppError, req:Request, res:Response, next:NextFunction)=>{
         return res
             .status(error.statusCode || 500)
-            .json({ message: error.message, success: false, stack: error.stack });
+            .json({ message: error.message, success: false });
     })
 }
