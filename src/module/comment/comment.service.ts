@@ -1,5 +1,5 @@
 import { CommentRepository, PostRepository } from "../../DB";
-import { IComment, IPost, NotFoundException, UnauthorizedException } from "../../utils";
+import { addReactionProvider, IComment, IPost, NotFoundException, UnauthorizedException } from "../../utils";
 import { Request, Response } from "express";
 import {CommentFactoryService} from "./factory";
 import { CreateCommentDTO } from "./comment.dto";
@@ -65,6 +65,16 @@ class CommentService {
         }
         await this.commentRepository.delete({ _id: id });
         return res.status(200).json({ success: true, message: "Comment deleted with replies successfully" })
+    }
+
+    public addReaction = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const { reaction } = req.body;
+        const userId = req.user!._id.toString();
+
+        await addReactionProvider(this.commentRepository, id!, reaction, userId)
+    
+        return res.sendStatus(204)
     }
 }
 

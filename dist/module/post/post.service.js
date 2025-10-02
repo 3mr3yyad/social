@@ -15,30 +15,8 @@ class PostService {
     addReaction = async (req, res) => {
         const { id } = req.params;
         const { reaction } = req.body;
-        const userId = req.user._id;
-        const postExists = await this.postRepository.exists({ _id: id });
-        if (!postExists) {
-            throw new utils_1.NotFoundException("Post not found");
-        }
-        let userReactionIndex = postExists.reactions.findIndex((reaction) => {
-            return reaction.userId.toString() == userId.toString();
-        });
-        if (userReactionIndex == -1) {
-            await this.postRepository.update({ _id: id }, {
-                $push: {
-                    reactions: {
-                        reaction,
-                        userId
-                    }
-                }
-            });
-        }
-        else if ([undefined, null, ""].includes(reaction)) {
-            await this.postRepository.update({ _id: id }, { $pull: { reactions: postExists.reactions[userReactionIndex] } });
-        }
-        else {
-            await this.postRepository.update({ _id: id, "reactions.userId": userId }, { "reactions.$.reaction": reaction });
-        }
+        const userId = req.user._id.toString();
+        await (0, utils_1.addReactionProvider)(this.postRepository, id, reaction, userId);
         return res.sendStatus(204);
     };
     getSpacificPost = async (req, res) => {

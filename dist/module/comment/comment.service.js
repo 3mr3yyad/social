@@ -50,5 +50,12 @@ class CommentService {
         await this.commentRepository.delete({ _id: id });
         return res.status(200).json({ success: true, message: "Comment deleted with replies successfully" });
     };
+    addReaction = async (req, res) => {
+        const { id } = req.params;
+        const { reaction } = req.body;
+        const userId = req.user._id.toString();
+        await (0, utils_1.addReactionProvider)(this.commentRepository, id, reaction, userId);
+        return res.sendStatus(204);
+    };
 }
 exports.default = new CommentService();
