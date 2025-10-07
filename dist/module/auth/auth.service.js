@@ -38,6 +38,21 @@ class AuthService {
         if (!isPasswordMatched) {
             throw new utils_1.ForbiddenException("Invalid credentials");
         }
+        if (user.twoStepVerified) {
+            const otp = (0, utils_1.generateOTP)();
+            const expiryTime = (0, utils_1.generateExpiryTime)(5 * 60 * 1000);
+            await this.userRepository.update({ _id: user._id }, { otp, otpExpiry: expiryTime });
+            await (0, utils_1.sendEmail)({
+                to: user.email,
+                subject: "Two step verification",
+                text: `Your two step verification code is ${otp}`
+            });
+            return res.status(200)
+                .json({
+                message: "check your email for two step verification",
+                success: true
+            });
+        }
         const accessToken = (0, token_1.generateToken)({ payload: { _id: user._id, role: user.role, fullName: user.fullName, gender: user.gender } });
         return res.status(200)
             .json({
@@ -54,6 +69,22 @@ class AuthService {
             .json({
             message: "User verified successfully",
             success: true,
+        });
+    };
+    twoStepVerification = async (req, res) => {
+        const twoStepVerificationDTO = req.body;
+        await auth_provider_1.authProvider.checkOTP(twoStepVerificationDTO);
+        const user = await this.userRepository.exists({ email: twoStepVerificationDTO.email });
+        if (!user) {
+            throw new utils_1.NotFoundException("User not found");
+        }
+        await this.userRepository.update({ email: twoStepVerificationDTO.email }, { twoStepVerified: true, $unset: { otp: "", otpExpiry: "" } });
+        const accessToken = (0, token_1.generateToken)({ payload: { _id: user._id, role: user.role, fullName: user.fullName, gender: user.gender } });
+        return res.status(200)
+            .json({
+            message: "User two step verified successfully",
+            success: true,
+            data: accessToken
         });
     };
 }

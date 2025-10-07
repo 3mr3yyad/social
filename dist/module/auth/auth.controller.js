@@ -42,6 +42,7 @@ const validation_middleware_1 = require("../../middleware/validation.middleware"
 const authValidation = __importStar(require("./auth.validation"));
 const router = (0, express_1.Router)();
 router.post("/register", (0, validation_middleware_1.isValid)(authValidation.registerSchema), auth_service_1.default.register);
-router.post("/login", auth_service_1.default.login);
+router.post("/login", (0, validation_middleware_1.isValid)(authValidation.loginSchema), auth_service_1.default.login);
+router.post("/two-step-verification", auth_service_1.default.twoStepVerification);
 router.post("/verify-email", auth_service_1.default.verifyEmail);
 exports.default = router;

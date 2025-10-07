@@ -56,6 +56,10 @@ exports.userSchema = new mongoose_1.Schema({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    twoStepVerified: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
 exports.userSchema.virtual("fullName")

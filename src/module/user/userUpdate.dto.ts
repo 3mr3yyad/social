@@ -12,3 +12,10 @@ export interface UpdateEmailDTO {
     expiryTime: Date;
 }
 
+export interface UpdatePasswordDTO {
+    oldPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+}
+
+
