@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { LoginDto, RegisterDto, VerifyEmailDTO } from "./auth.dto";
-import { ConflictException, ForbiddenException, NotFoundException, compareHash } from "../../utils";
+import { ConflictException, ForbiddenException, NotFoundException, compareHash, generateExpiryTime, generateOTP, sendEmail } from "../../utils";
 import { UserRepository } from "../../DB";
 import { AuthFactoryService } from "./factory";
 import { authProvider } from "./provider/auth.provider";
@@ -12,7 +12,7 @@ class AuthService {
     constructor() {
 
     }
-    register = async (req: Request, res: Response) => {
+    public register = async (req: Request, res: Response) => {
         const registerDTO: RegisterDto = req.body;
 
         const userExists = await this.userRepository.exists({ email: registerDTO.email });
@@ -32,7 +32,7 @@ class AuthService {
             });
     }
 
-    login = async (req: Request, res: Response) => {
+    public login = async (req: Request, res: Response) => {
         const loginDTO: LoginDto = req.body;
 
         const user = await this.userRepository.exists({ email: loginDTO.email });
@@ -51,6 +51,25 @@ class AuthService {
             throw new ForbiddenException("Invalid credentials");
         }
 
+        if (user.twoStepVerified) {
+            const otp = generateOTP();
+            const expiryTime = generateExpiryTime(5 * 60 * 1000);
+
+            await this.userRepository.update({ _id: user._id }, { otp, otpExpiry: expiryTime });
+
+            await sendEmail({
+                to: user.email,
+                subject: "Two step verification",
+                text: `Your two step verification code is ${otp}`
+            });
+
+            return res.status(200)
+                .json({
+                    message: "check your email for two step verification",
+                    success: true
+                });
+        }
+
         const accessToken = generateToken({ payload: { _id: user._id, role: user.role, fullName: user.fullName, gender: user.gender} });
 
         return res.status(200)
@@ -61,7 +80,7 @@ class AuthService {
             });
     }
 
-    verifyEmail = async (req: Request, res: Response) => {
+    public verifyEmail = async (req: Request, res: Response) => {
         const verifyEmailDTO: VerifyEmailDTO = req.body;
 
         await authProvider.checkOTP(verifyEmailDTO);
@@ -76,7 +95,31 @@ class AuthService {
                 message: "User verified successfully",
                 success: true,
             });
+    }
+    public twoStepVerification = async (req: Request, res: Response) => {
+        const twoStepVerificationDTO: VerifyEmailDTO = req.body;
 
+        await authProvider.checkOTP(twoStepVerificationDTO);
+
+        const user = await this.userRepository.exists({ email: twoStepVerificationDTO.email });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        await this.userRepository.update(
+            { email: twoStepVerificationDTO.email },
+            { twoStepVerified: true, $unset: { otp: "", otpExpiry: "" } }
+        );
+
+        const accessToken = generateToken({ payload: { _id: user._id, role: user.role, fullName: user.fullName, gender: user.gender} });
+
+        return res.status(200)
+            .json({
+                message: "User two step verified successfully",
+                success: true,
+                data: accessToken
+            });
     }
 }
 

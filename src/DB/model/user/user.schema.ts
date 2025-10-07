@@ -55,6 +55,10 @@ export const userSchema = new Schema<IUser>({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    twoStepVerified: {
+        type: Boolean,
+        default: false
     }
 },
     { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } })

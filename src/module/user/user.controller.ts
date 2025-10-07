@@ -9,5 +9,6 @@ const router = Router();
 router.get("/:id", userService.getProfile);
 router.put("/updateProfile/:id", isValid(userValidation.updateUserSchema),isAuthenticated(), userService.updateProfile);
 router.put("/updateEmail/:id", isValid(userValidation.updateEmailSchema),isAuthenticated(), userService.updateEmail);
+router.put("/updateTwoStepVerification/:id", isAuthenticated(), userService.updateTwoStepVerification);
 
 export default router;
