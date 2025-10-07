@@ -10,5 +10,6 @@ router.get("/:id", userService.getProfile);
 router.put("/updateProfile/:id", isValid(userValidation.updateUserSchema),isAuthenticated(), userService.updateProfile);
 router.put("/updateEmail/:id", isValid(userValidation.updateEmailSchema),isAuthenticated(), userService.updateEmail);
 router.put("/updateTwoStepVerification/:id", isAuthenticated(), userService.updateTwoStepVerification);
+router.put("/updatePassword/:id", isValid(userValidation.updatePasswordSchema),isAuthenticated(), userService.updatePassword);
 
 export default router;
