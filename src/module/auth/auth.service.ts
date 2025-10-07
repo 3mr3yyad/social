@@ -15,8 +15,6 @@ class AuthService {
     register = async (req: Request, res: Response) => {
         const registerDTO: RegisterDto = req.body;
 
-        
-
         const userExists = await this.userRepository.exists({ email: registerDTO.email });
         if (userExists) {
             throw new ConflictException("User already exists");
