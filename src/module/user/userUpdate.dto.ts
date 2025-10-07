@@ -10,6 +10,7 @@ export interface UpdateEmailDTO {
     email: string;
     otp: string;
     expiryTime: Date;
+    isVerified?: boolean;
 }
 
 export interface UpdatePasswordDTO {

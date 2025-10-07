@@ -43,7 +43,8 @@ class UserService {
         const updateEmailDto : UpdateEmailDTO = {
             email: req.body.email,
             otp: generateOTP(),
-            expiryTime: generateExpiryTime(5 * 60 * 1000)
+            expiryTime: generateExpiryTime(5 * 60 * 1000),
+            isVerified: false
         };
         
         const user = await this.userRepository.getOne({ _id: req.params.id });

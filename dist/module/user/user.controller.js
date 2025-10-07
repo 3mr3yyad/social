@@ -46,4 +46,5 @@ router.get("/:id", user_service_1.default.getProfile);
 router.put("/updateProfile/:id", (0, validation_middleware_1.isValid)(userValidation.updateUserSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateProfile);
 router.put("/updateEmail/:id", (0, validation_middleware_1.isValid)(userValidation.updateEmailSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateEmail);
 router.put("/updateTwoStepVerification/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateTwoStepVerification);
+router.put("/updatePassword/:id", (0, validation_middleware_1.isValid)(userValidation.updatePasswordSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updatePassword);
 exports.default = router;

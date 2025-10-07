@@ -34,7 +34,8 @@ class UserService {
         const updateEmailDto = {
             email: req.body.email,
             otp: (0, utils_1.generateOTP)(),
-            expiryTime: (0, utils_1.generateExpiryTime)(5 * 60 * 1000)
+            expiryTime: (0, utils_1.generateExpiryTime)(5 * 60 * 1000),
+            isVerified: false
         };
         const user = await this.userRepository.getOne({ _id: req.params.id });
         if (!user) {
@@ -70,6 +71,50 @@ class UserService {
             message: "two step verification updated successfully",
             success: true,
             data: updatedUser
+        });
+    };
+    updatePassword = async (req, res) => {
+        const updatePasswordDto = {
+            oldPassword: await (0, utils_1.generateHash)(req.body.oldPassword),
+            newPassword: await (0, utils_1.generateHash)(req.body.newPassword),
+            confirmPassword: await (0, utils_1.generateHash)(req.body.confirmPassword)
+        };
+        const user = await this.userRepository.getOne({ _id: req.params.id });
+        if (!user) {
+            throw new utils_1.NotFoundException("User not found");
+        }
+        if (user._id.toString() != req.params.id) {
+            throw new utils_1.UnauthorizedException("You are not authorized to update this user");
+        }
+        const isPasswordMatched = await (0, utils_1.compareHash)(updatePasswordDto.oldPassword, user.password);
+        if (!isPasswordMatched) {
+            throw new utils_1.ForbiddenException("Invalid credentials");
+        }
+        if (updatePasswordDto.newPassword != updatePasswordDto.confirmPassword) {
+            throw new utils_1.ForbiddenException("Passwords do not match");
+        }
+        if (updatePasswordDto.newPassword == updatePasswordDto.oldPassword) {
+            throw new utils_1.ForbiddenException("New password cannot be the same as old password");
+        }
+        if (user.twoStepVerified) {
+            const otp = (0, utils_1.generateOTP)();
+            const expiryTime = (0, utils_1.generateExpiryTime)(5 * 60 * 1000);
+            await this.userRepository.update({ _id: user._id }, { otp, otpExpiry: expiryTime });
+            await (0, utils_1.sendEmail)({
+                to: user.email,
+                subject: "Two step verification",
+                text: `Your two step verification code is ${otp}`
+            });
+            return res.status(200)
+                .json({
+                message: "check your email for two step verification",
+                success: true
+            });
+        }
+        await this.userRepository.update({ _id: req.params.id }, { password: updatePasswordDto.newPassword });
+        return res.status(201).json({
+            message: "password updated successfully",
+            success: true
         });
     };
 }
