@@ -26,17 +26,19 @@ class UserService {
     public updateProfile = async (req: Request, res: Response) => {
         const updateUserDto: UpdateUserDTO = req.body;
 
-        const user = await this.userRepository.getOne({ _id: req.params.id });
+        const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
+
+        const user = await this.userRepository.getOne({ _id: userId });
 
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
-        if ( user._id.toString() != req.params.id) {
+        if ( user._id.toString() != userId.toString()) {
             throw new UnauthorizedException("You are not authorized to update this user");
         }
         
-        const updatedUser = await this.userRepository.update({ _id: req.params.id }, updateUserDto);
+        const updatedUser = await this.userRepository.update({ _id: userId }, updateUserDto);
 
         return res.status(201).json({
             message: "user updated successfully",
@@ -52,18 +54,20 @@ class UserService {
             expiryTime: generateExpiryTime(5 * 60 * 1000),
             isVerified: false
         };
+
+        const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
         
-        const user = await this.userRepository.getOne({ _id: req.params.id });
+        const user = await this.userRepository.getOne({ _id: userId });
 
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
-        if ( user._id.toString() != req.params.id) {
+        if ( user._id.toString() != userId.toString()) {
             throw new UnauthorizedException("You are not authorized to update this user");
         }
         
-        const updatedUser = await this.userRepository.update({ _id: req.params.id }, updateEmailDto);
+        const updatedUser = await this.userRepository.update({ _id: userId }, updateEmailDto);
 
         await sendEmail({
                             to: updateEmailDto.email,
@@ -81,17 +85,19 @@ class UserService {
     }
 
     public updateTwoStepVerification = async (req: Request, res: Response) => {
-        const user = await this.userRepository.getOne({ _id: req.params.id });
+        const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
+        
+        const user = await this.userRepository.getOne({ _id: userId });
 
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
-        if ( user._id.toString() != req.params.id) {
+        if ( user._id.toString() != userId.toString()) {
             throw new UnauthorizedException("You are not authorized to update this user");
         }
         
-        const updatedUser = await this.userRepository.update({ _id: req.params.id }, { twoStepVerified: true });
+        const updatedUser = await this.userRepository.update({ _id: userId }, { twoStepVerified: true });
 
         return res.status(201).json({
             message: "two step verification updated successfully",
@@ -107,13 +113,15 @@ class UserService {
             confirmPassword: await generateHash(req.body.confirmPassword)
         };
         
-        const user = await this.userRepository.getOne({ _id: req.params.id });
+        const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
+        
+        const user = await this.userRepository.getOne({ _id: userId });
 
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
-        if ( user._id.toString() != req.params.id) {
+        if ( user._id.toString() != userId.toString()) {
             throw new UnauthorizedException("You are not authorized to update this user");
         }
 
@@ -150,7 +158,7 @@ class UserService {
                 });
         }
         
-        await this.userRepository.update({ _id: req.params.id }, { password: updatePasswordDto.newPassword });
+        await this.userRepository.update({ _id: userId }, { password: updatePasswordDto.newPassword });
 
         return res.status(201).json({
             message: "password updated successfully",
