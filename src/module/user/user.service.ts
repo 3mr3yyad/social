@@ -160,18 +160,42 @@ class UserService {
 
     public blockUser = async (req: Request, res: Response) => {
         const blockDTO: userActionDTO = {
-            user: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
-            blockedUserId: req.body.blockedUserId
+            currentUserId: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
+            recieverUserId: req.params.id as unknown as ObjectId
         };
 
-        const blockedUser = await this.userRepository.exists({ _id: blockDTO.blockedUserId });
+        const currentUserId = await this.userRepository.exists({ _id: blockDTO.currentUserId });
+
+        const blockedUser = await this.userRepository.exists({ _id: blockDTO.recieverUserId });
 
         if (!blockedUser) {
             throw new NotFoundException("User not found");
         }
 
+        if (blockDTO.currentUserId.toString() == blockDTO.recieverUserId.toString()) {
+            throw new ForbiddenException("You cannot block yourself");
+        }
+
+        if (currentUserId!.blockList!.includes(blockDTO.recieverUserId)) {
+            throw new ForbiddenException("User is already blocked");
+        }
+
+        if(currentUserId!.friendsRequest!.includes(blockDTO.recieverUserId)) {
+            await this.userRepository.update(
+                { _id: blockDTO.currentUserId },
+                { friendsRequest: { $pull: blockDTO.recieverUserId } }
+            );
+        }
+
+        if(currentUserId!.friends!.includes(blockDTO.recieverUserId)) {
+            await this.userRepository.update(
+                { _id: blockDTO.currentUserId },
+                { friends: { $pull: blockDTO.recieverUserId } }
+            );
+        }
+
         await this.userRepository.update(
-            { _id: blockDTO.user },
+            { _id: blockDTO.currentUserId },
             { blockList: blockedUser._id }
         );
 
@@ -184,18 +208,18 @@ class UserService {
 
     public unblockUser = async (req: Request, res: Response) => {
         const blockDTO: userActionDTO = {
-            user: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
-            blockedUserId: req.body.blockedUserId
+            currentUserId: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
+            recieverUserId: req.params.id as unknown as ObjectId
         };
 
-        const blockedUser = await this.userRepository.exists({ _id: blockDTO.blockedUserId });
+        const blockedUser = await this.userRepository.exists({ _id: blockDTO.recieverUserId });
 
         if (!blockedUser) {
             throw new NotFoundException("User not found");
         }
 
         await this.userRepository.update(
-            { _id: blockDTO.user },
+            { _id: blockDTO.currentUserId },
             { blockList: { $pull: blockedUser._id } }
         );
 
@@ -224,6 +248,135 @@ class UserService {
                 message: "Block list fetched successfully",
                 success: true,
                 data: blockList
+            });
+    }
+
+    public sendFriendRequest = async (req: Request, res: Response) => {
+        const friendRequestDTO: userActionDTO = {
+            currentUserId: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
+            recieverUserId: req.params.id as unknown as ObjectId
+        };
+
+        const user = await this.userRepository.exists({ _id: friendRequestDTO.recieverUserId });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        await this.userRepository.update(
+            { _id: friendRequestDTO.recieverUserId },
+            { friendsRequest: { $push: friendRequestDTO.currentUserId } }
+        );
+
+        return res.status(200)
+            .json({
+                message: "Friend request sent successfully",
+                success: true,
+            });
+    }
+
+    public acceptFriendRequest = async (req: Request, res: Response) => {
+        const friendRequestDTO: userActionDTO = {
+            currentUserId: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
+            recieverUserId: req.params.id as unknown as ObjectId
+        };
+
+        const currentUserId = await this.userRepository.getOne({ _id: friendRequestDTO.currentUserId });
+
+        const user = await this.userRepository.exists({ _id: friendRequestDTO.recieverUserId });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        if (!currentUserId!.friendsRequest!.includes(friendRequestDTO.recieverUserId)) {
+            throw new NotFoundException("Friend request not found");
+        }
+
+        await this.userRepository.update(
+            { _id: friendRequestDTO.recieverUserId },
+            { friendsRequest: { $pull: friendRequestDTO.currentUserId } }
+        );
+
+        await this.userRepository.update(
+            { _id: friendRequestDTO.currentUserId },
+            { friends: { $push: friendRequestDTO.recieverUserId } }
+        );
+
+        await this.userRepository.update(
+            { _id: friendRequestDTO.recieverUserId },
+            { friends: { $push: friendRequestDTO.currentUserId } }
+        );
+
+        return res.status(200)
+            .json({
+                message: "Friend request accepted successfully",
+                success: true,
+            });
+    }
+
+    public rejectFriendRequest = async (req: Request, res: Response) => {
+        const friendRequestDTO: userActionDTO = {
+            currentUserId: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
+            recieverUserId: req.body.userId
+        };
+
+        const currentUserId = await this.userRepository.getOne({ _id: friendRequestDTO.currentUserId });
+
+        const user = await this.userRepository.exists({ _id: friendRequestDTO.recieverUserId });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        if (!currentUserId!.friendsRequest!.includes(friendRequestDTO.recieverUserId)) {
+            throw new NotFoundException("Friend request not found");
+        }
+
+        await this.userRepository.update(
+            { _id: friendRequestDTO.currentUserId },
+            { friendsRequest: { $pull: friendRequestDTO.recieverUserId } }
+        );
+
+        return res.status(200)
+            .json({
+                message: "Friend request rejected successfully",
+                success: true,
+            });
+    }
+
+    public removeFriend = async (req: Request, res: Response) => { 
+        const removeFriendDto: userActionDTO = {
+            currentUserId: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
+            recieverUserId: req.params.id as unknown as ObjectId
+        };
+
+        const currentUserId = await this.userRepository.getOne({ _id: removeFriendDto.currentUserId });
+
+        const user = await this.userRepository.exists({ _id: removeFriendDto.recieverUserId });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        if (!currentUserId!.friends!.includes(removeFriendDto.recieverUserId)) {
+            throw new ForbiddenException("this user is not your friend");
+        }
+
+        await this.userRepository.update(
+            { _id: removeFriendDto.currentUserId },
+            { friends: { $pull: removeFriendDto.recieverUserId } }
+        );
+
+        await this.userRepository.update(
+            { _id: removeFriendDto.recieverUserId },
+            { friends: { $pull: removeFriendDto.currentUserId } }
+        );
+
+        return res.status(200)
+            .json({
+                message: "Friend removed successfully",
+                success: true,
             });
     }
 }

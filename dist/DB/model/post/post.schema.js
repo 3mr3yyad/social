@@ -23,6 +23,10 @@ exports.postSchema = new mongoose_1.Schema({
         },
         trim: true
     },
+    deletedAt: {
+        type: Date,
+        default: null
+    },
     reactions: [common_1.reactionSchema]
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
 exports.postSchema.virtual("comments", {

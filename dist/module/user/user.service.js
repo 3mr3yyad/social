@@ -8,6 +8,9 @@ class UserService {
     }
     getProfile = async (req, res) => {
         const user = await this.userRepository.getOne({ _id: req.params.id });
+        if (!user || user.deletedAt) {
+            throw new utils_1.NotFoundException("User not found");
+        }
         return res.status(200).json({
             message: "Done",
             success: true,
@@ -115,6 +118,55 @@ class UserService {
         return res.status(201).json({
             message: "password updated successfully",
             success: true
+        });
+    };
+    blockUser = async (req, res) => {
+        const blockDTO = {
+            user: (0, utils_1.verifyToken)(req.headers.authorization)._id,
+            blockedUserId: req.body.blockedUserId
+        };
+        const blockedUser = await this.userRepository.exists({ _id: blockDTO.blockedUserId });
+        if (!blockedUser) {
+            throw new utils_1.NotFoundException("User not found");
+        }
+        await this.userRepository.update({ _id: blockDTO.user }, { blockList: blockedUser._id });
+        return res.status(200)
+            .json({
+            message: "User blocked successfully",
+            success: true,
+        });
+    };
+    unblockUser = async (req, res) => {
+        const blockDTO = {
+            user: (0, utils_1.verifyToken)(req.headers.authorization)._id,
+            blockedUserId: req.body.blockedUserId
+        };
+        const blockedUser = await this.userRepository.exists({ _id: blockDTO.blockedUserId });
+        if (!blockedUser) {
+            throw new utils_1.NotFoundException("User not found");
+        }
+        await this.userRepository.update({ _id: blockDTO.user }, { blockList: { $pull: blockedUser._id } });
+        return res.status(200)
+            .json({
+            message: "User unblocked successfully",
+            success: true,
+        });
+    };
+    getBlockList = async (req, res) => {
+        const userId = (0, utils_1.verifyToken)(req.headers.authorization)._id;
+        const blockList = await this.userRepository.exists({ _id: userId }, "blockList");
+        if (!blockList) {
+            return res.status(200)
+                .json({
+                message: "Block list is empty",
+                success: true,
+            });
+        }
+        return res.status(200)
+            .json({
+            message: "Block list fetched successfully",
+            success: true,
+            data: blockList
         });
     };
 }

@@ -66,15 +66,12 @@ export const userSchema = new Schema<IUser>({
     },
     blockList: {
         type: [Schema.Types.ObjectId],
-        ref: "User"
     },
     friendsRequest: {
         type: [Schema.Types.ObjectId],
-        ref: "User"
     },
     friends: {
         type: [Schema.Types.ObjectId],
-        ref: "User"
     }
 },
     { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } })

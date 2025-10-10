@@ -36,6 +36,10 @@ exports.commentSchema = new mongoose_1.Schema({
             url: String
         }
     ],
+    deletedAt: {
+        type: Date,
+        default: null
+    },
     reactions: {
         type: [common_1.reactionSchema]
     }

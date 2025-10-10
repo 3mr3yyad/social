@@ -14,5 +14,9 @@ router.put("/updatePassword/:id", isValid(userValidation.updatePasswordSchema),i
 router.put("/blockUser/:id", isAuthenticated(), userService.blockUser);
 router.put("/unblockUser/:id", isAuthenticated(), userService.unblockUser);
 router.get("/getBlockList/:id", isAuthenticated(), userService.getBlockList);
+router.post("/sendFriendRequest/:id", isAuthenticated(), userService.sendFriendRequest);
+router.post("/acceptFriendRequest/:id", isAuthenticated(), userService.acceptFriendRequest);
+router.post("/rejectFriendRequest/:id", isAuthenticated(), userService.rejectFriendRequest);
+router.post("/removeFriend/:id", isAuthenticated(), userService.removeFriend);
 
 export default router;

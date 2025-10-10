@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const user_service_1 = __importDefault(require("./user.service"));
 const validation_middleware_1 = require("../../middleware/validation.middleware");
-const userValidation = __importStar(require("./userUpdate.validation"));
+const userValidation = __importStar(require("./user.validation"));
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const router = (0, express_1.Router)();
 router.get("/:id", user_service_1.default.getProfile);
@@ -47,4 +47,7 @@ router.put("/updateProfile/:id", (0, validation_middleware_1.isValid)(userValida
 router.put("/updateEmail/:id", (0, validation_middleware_1.isValid)(userValidation.updateEmailSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateEmail);
 router.put("/updateTwoStepVerification/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateTwoStepVerification);
 router.put("/updatePassword/:id", (0, validation_middleware_1.isValid)(userValidation.updatePasswordSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updatePassword);
+router.put("/blockUser/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.blockUser);
+router.put("/unblockUser/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.unblockUser);
+router.get("/getBlockList/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.getBlockList);
 exports.default = router;

@@ -21,8 +21,8 @@ export interface UpdatePasswordDTO {
 }
 
 export interface userActionDTO {
-    user: ObjectId;
-    blockedUserId: ObjectId;
+    currentUserId: ObjectId;
+    recieverUserId: ObjectId;
 }
 
 
