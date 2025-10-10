@@ -8,7 +8,9 @@ const router = Router({ mergeParams: true });
 
 router.post("{/:id}", isValid(commentValidation), isAuthenticated(), commentService.create);
 router.get("/:id", isAuthenticated(), commentService.getSpecific);
+router.put("/freeze/:id", isAuthenticated(), commentService.freezeComment);
 router.delete("/:id", isAuthenticated(), commentService.deleteComment);
+router.put("/update/:id", isValid(commentValidation), isAuthenticated(), commentService.updateComment);
 router.patch("/:id", isAuthenticated(), commentService.addReaction);
 
 export default router;
