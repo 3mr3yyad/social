@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { LoginDto, RegisterDto, VerifyEmailDTO } from "./auth.dto";
+import {  LoginDto, RegisterDto, VerifyEmailDTO } from "./auth.dto";
 import { ConflictException, ForbiddenException, NotFoundException, compareHash, generateExpiryTime, generateOTP, sendEmail } from "../../utils";
 import { UserRepository } from "../../DB";
 import { AuthFactoryService } from "./factory";

@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import { GENDER } from "../../utils";
 
 export interface UpdateUserDTO {
@@ -18,5 +19,11 @@ export interface UpdatePasswordDTO {
     newPassword: string;
     confirmPassword: string;
 }
+
+export interface userActionDTO {
+    user: ObjectId;
+    blockedUserId: ObjectId;
+}
+
 
 

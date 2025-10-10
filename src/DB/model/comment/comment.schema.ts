@@ -34,6 +34,10 @@ export const commentSchema = new Schema<IComment>(
                 url: String
             }
         ],
+        deletedAt: {
+            type: Date,
+            default: null
+        },
         reactions: {
             type: [reactionSchema]
         }

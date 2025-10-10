@@ -59,6 +59,22 @@ export const userSchema = new Schema<IUser>({
     twoStepVerified: {
         type: Boolean,
         default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null
+    },
+    blockList: {
+        type: [Schema.Types.ObjectId],
+        ref: "User"
+    },
+    friendsRequest: {
+        type: [Schema.Types.ObjectId],
+        ref: "User"
+    },
+    friends: {
+        type: [Schema.Types.ObjectId],
+        ref: "User"
     }
 },
     { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } })

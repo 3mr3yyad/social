@@ -21,6 +21,10 @@ export const postSchema = new Schema<IPost>(
             },
             trim: true
         },
+        deletedAt: {
+            type: Date,
+            default: null
+        },
         reactions:[reactionSchema]
     },
     { timestamps: true , toJSON: { virtuals: true }, toObject: { virtuals: true }}

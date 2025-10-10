@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { GENDER } from "../../utils";
-import { UpdateEmailDTO, UpdatePasswordDTO, UpdateUserDTO as UpdateUserDTO } from "./userUpdate.dto";
+import { UpdateEmailDTO, UpdatePasswordDTO, UpdateUserDTO as UpdateUserDTO } from "./user.dto";
 
 export const updateUserSchema = z.object<UpdateUserDTO>({
     fullName: z.string().min(3).max(50) as unknown as string,

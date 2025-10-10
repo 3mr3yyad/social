@@ -23,6 +23,10 @@ export interface IUser {
     otpExpiry?: Date;
     isVerified?: boolean;
     twoStepVerified?: boolean;
+    deletedAt?: Date;
+    blockList?: ObjectId[];
+    friendsRequest?: ObjectId[];
+    friends?: ObjectId[];
 }
 
 export interface IReaction {
@@ -38,6 +42,7 @@ export interface IPost {
     attachments?: IAttachment[];
     createdAt: Date;
     updatedAt: Date;
+    deletedAt?: Date;
 }
 
 export interface IComment {
@@ -48,6 +53,7 @@ export interface IComment {
     content: string;
     attachments?: IAttachment[];
     reactions: IReaction[];
+    deletedAt?: Date;
 }
 
 export interface IPayLoad extends JwtPayload {
