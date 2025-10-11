@@ -43,6 +43,7 @@ export interface IPost {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
+    frozen?: boolean;
 }
 
 export interface IComment {
@@ -54,6 +55,7 @@ export interface IComment {
     attachments?: IAttachment[];
     reactions: IReaction[];
     deletedAt?: Date;
+    frozen?: boolean;
 }
 
 export interface IPayLoad extends JwtPayload {

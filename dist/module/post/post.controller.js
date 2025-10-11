@@ -15,4 +15,7 @@ router.post("/", (0, auth_middleware_1.isAuthenticated)(), (0, validation_middle
 router.patch("/:id", (0, auth_middleware_1.isAuthenticated)(), post_service_1.default.addReaction);
 router.get("/:id", post_service_1.default.getSpacificPost);
 router.delete("/:id", (0, auth_middleware_1.isAuthenticated)(), post_service_1.default.deletePost);
+router.patch("/freeze/:id", (0, auth_middleware_1.isAuthenticated)(), post_service_1.default.freezePost);
+router.patch("/unfreeze/:id", (0, auth_middleware_1.isAuthenticated)(), post_service_1.default.unfreezePost);
+router.patch("/update/:id", (0, auth_middleware_1.isAuthenticated)(), (0, validation_middleware_1.isValid)(post_validation_1.postValidation), post_service_1.default.updatePost);
 exports.default = router;

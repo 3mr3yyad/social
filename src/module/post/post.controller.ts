@@ -12,5 +12,8 @@ router.post("/", isAuthenticated(), isValid(postValidation), PostService.createP
 router.patch("/:id", isAuthenticated(), PostService.addReaction)
 router.get("/:id", PostService.getSpacificPost)
 router.delete("/:id", isAuthenticated(), PostService.deletePost)
+router.patch("/freeze/:id", isAuthenticated(), PostService.freezePost)
+router.patch("/unfreeze/:id", isAuthenticated(), PostService.unfreezePost)
+router.patch("/update/:id", isAuthenticated(), isValid(postValidation), PostService.updatePost)
 
 export default router

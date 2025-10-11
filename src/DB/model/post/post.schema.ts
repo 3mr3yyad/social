@@ -25,6 +25,10 @@ export const postSchema = new Schema<IPost>(
             type: Date,
             default: null
         },
+        frozen: {
+            type: Boolean,
+            default: false
+        },
         reactions:[reactionSchema]
     },
     { timestamps: true , toJSON: { virtuals: true }, toObject: { virtuals: true }}

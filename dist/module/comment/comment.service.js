@@ -35,10 +35,10 @@ class CommentService {
         if (!comment) {
             throw new utils_1.NotFoundException("Comment not found");
         }
-        if (comment.deletedAt && comment.userId.toString() == currentUser.toString()) {
+        if (comment.frozen && comment.userId.toString() == currentUser.toString()) {
             return res.status(200).json({ message: "frozen by you", success: true, data: { comment } });
         }
-        if (comment.deletedAt) {
+        if (comment.frozen) {
             throw new utils_1.NotFoundException("Comment not found");
         }
         return res.status(200).json({ success: true, data: { comment } });
@@ -55,7 +55,8 @@ class CommentService {
             commentExists.postId.userId.toString()].includes(req.user._id.toString())) {
             throw new utils_1.UnauthorizedException("You are not authorized to freeze this comment");
         }
-        await this.commentRepository.update({ _id: id }, { deletedAt: Date.now() });
+        await this.commentRepository.update({ _id: id }, { deletedAt: Date.now(), frozen: true });
+        // TODO: freeze replies
         return res.status(200).json({ success: true, message: "Comment frozen successfully" });
     };
     deleteComment = async (req, res) => {
@@ -79,7 +80,7 @@ class CommentService {
         const commentExists = await this.commentRepository.exists({ _id: id }, {}, { populate: [
                 { path: "postId", select: "userId" }
             ] });
-        if (!commentExists) {
+        if (!commentExists || commentExists.frozen) {
             throw new utils_1.NotFoundException("Comment not found");
         }
         if (![commentExists.userId.toString(),
@@ -93,6 +94,10 @@ class CommentService {
         const { id } = req.params;
         const { reaction } = req.body;
         const userId = req.user._id.toString();
+        const commentExists = await this.commentRepository.exists({ _id: id });
+        if (!commentExists || commentExists.frozen) {
+            throw new utils_1.NotFoundException("Comment not found");
+        }
         await (0, utils_1.addReactionProvider)(this.commentRepository, id, reaction, userId);
         return res.sendStatus(204);
     };

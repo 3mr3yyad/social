@@ -27,6 +27,10 @@ exports.postSchema = new mongoose_1.Schema({
         type: Date,
         default: null
     },
+    frozen: {
+        type: Boolean,
+        default: false
+    },
     reactions: [common_1.reactionSchema]
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
 exports.postSchema.virtual("comments", {

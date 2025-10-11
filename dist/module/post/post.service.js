@@ -31,7 +31,43 @@ class PostService {
         if (!post) {
             throw new utils_1.NotFoundException("Post not found");
         }
+        if (post.frozen && post.userId.toString() == req.user._id.toString()) {
+            return res.status(200).json({ message: "frozen by you", success: true, data: { post } });
+        }
+        if (post.frozen) {
+            throw new utils_1.NotFoundException("Post not found");
+        }
         return res.status(200).json({ success: true, data: { post } });
+    };
+    freezePost = async (req, res) => {
+        const { id } = req.params;
+        const postExists = await this.postRepository.exists({ _id: id });
+        if (!postExists) {
+            throw new utils_1.NotFoundException("Post not found");
+        }
+        if (postExists.userId.toString() != req.user._id.toString()) {
+            throw new utils_1.UnauthorizedException("You are not authorized to freeze this post");
+        }
+        if (postExists.frozen) {
+            throw new utils_1.UnauthorizedException("Post is already frozen");
+        }
+        await this.postRepository.update({ _id: id }, { frozen: true });
+        return res.status(200).json({ success: true, message: "Post frozen successfully" });
+    };
+    unfreezePost = async (req, res) => {
+        const { id } = req.params;
+        const postExists = await this.postRepository.exists({ _id: id });
+        if (!postExists) {
+            throw new utils_1.NotFoundException("Post not found");
+        }
+        if (postExists.userId.toString() != req.user._id.toString()) {
+            throw new utils_1.UnauthorizedException("You are not authorized to unfreeze this post");
+        }
+        if (!postExists.frozen) {
+            throw new utils_1.UnauthorizedException("Post is not frozen");
+        }
+        await this.postRepository.update({ _id: id }, { frozen: false, deletedAt: null });
+        return res.status(200).json({ success: true, message: "Post unfrozen successfully" });
     };
     deletePost = async (req, res) => {
         const { id } = req.params;
@@ -44,6 +80,19 @@ class PostService {
         }
         await this.postRepository.delete({ _id: id });
         return res.status(200).json({ success: true, message: "Post deleted with comments successfully" });
+    };
+    updatePost = async (req, res) => {
+        const { id } = req.params;
+        const updatePostDTO = req.body;
+        const postExists = await this.postRepository.exists({ _id: id });
+        if (!postExists) {
+            throw new utils_1.NotFoundException("Post not found");
+        }
+        if (postExists.userId.toString() != req.user._id.toString()) {
+            throw new utils_1.UnauthorizedException("You are not authorized to update this post");
+        }
+        await this.postRepository.update({ _id: id }, { content: updatePostDTO.content });
+        return res.status(200).json({ success: true, message: "Post updated successfully" });
     };
 }
 exports.default = new PostService();

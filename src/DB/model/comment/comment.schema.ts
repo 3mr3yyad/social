@@ -38,6 +38,10 @@ export const commentSchema = new Schema<IComment>(
             type: Date,
             default: null
         },
+        frozen: {
+            type: Boolean,
+            default: false
+        },
         reactions: {
             type: [reactionSchema]
         }

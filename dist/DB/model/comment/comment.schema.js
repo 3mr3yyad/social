@@ -40,6 +40,10 @@ exports.commentSchema = new mongoose_1.Schema({
         type: Date,
         default: null
     },
+    frozen: {
+        type: Boolean,
+        default: false
+    },
     reactions: {
         type: [common_1.reactionSchema]
     }

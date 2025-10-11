@@ -51,11 +51,11 @@ class CommentService {
             throw new NotFoundException("Comment not found");
         }
 
-        if (comment.deletedAt && comment.userId.toString() == currentUser.toString()) {
+        if (comment.frozen && comment.userId.toString() == currentUser.toString()) {
             return res.status(200).json({ message: "frozen by you", success: true, data: { comment } })
         }
 
-        if (comment.deletedAt) {
+        if (comment.frozen) {
             throw new NotFoundException("Comment not found");
         }
 
@@ -76,7 +76,8 @@ class CommentService {
         (commentExists.postId as unknown as IPost).userId.toString()].includes(req.user!._id.toString())) {
             throw new UnauthorizedException("You are not authorized to freeze this comment");
         }
-        await this.commentRepository.update({ _id: id }, { deletedAt: Date.now() });
+        await this.commentRepository.update({ _id: id }, { deletedAt: Date.now(), frozen: true });
+        // TODO: freeze replies
         return res.status(200).json({ success: true, message: "Comment frozen successfully" })
     }
 
@@ -106,7 +107,7 @@ class CommentService {
                 { path: "postId", select: "userId" }
             ]}
         );
-        if (!commentExists) {
+        if (!commentExists || commentExists.frozen) {
             throw new NotFoundException("Comment not found");
         }
         if (![commentExists.userId.toString(), 
@@ -121,6 +122,12 @@ class CommentService {
         const { id } = req.params;
         const { reaction } = req.body;
         const userId = req.user!._id.toString();
+
+        const commentExists = await this.commentRepository.exists({ _id: id }
+        );
+        if (!commentExists || commentExists.frozen) {
+            throw new NotFoundException("Comment not found");
+        }
 
         await addReactionProvider(this.commentRepository, id!, reaction, userId)
     
