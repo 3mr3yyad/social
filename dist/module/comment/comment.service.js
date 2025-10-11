@@ -28,12 +28,21 @@ class CommentService {
     getSpecific = async (req, res) => {
         const { id } = req.params;
         const currentUser = (0, utils_1.verifyToken)(req.headers.authorization)._id;
-        const comment = await this.commentRepository.getOne({ _id: id }, {}, { populate: [
+        const comment = await this.commentRepository.getOne({ _id: id }, {}, {
+            populate: [
                 { path: "replies", match: { parentId: id }, select: "fullName fristName lastName profilePicture" }
             ]
         });
         if (!comment) {
             throw new utils_1.NotFoundException("Comment not found");
+        }
+        const post = await this.postRepository.getOne({ _id: comment.postId }, {}, {});
+        if (post?.frozen) {
+            throw new utils_1.NotFoundException("Post is deleted");
+        }
+        const parentComment = await this.commentRepository.getOne({ _id: comment.parentId }, {}, {});
+        if (parentComment?.frozen) {
+            throw new utils_1.NotFoundException("Comment is deleted");
         }
         if (comment.frozen && comment.userId.toString() == currentUser.toString()) {
             return res.status(200).json({ message: "frozen by you", success: true, data: { comment } });
@@ -45,9 +54,11 @@ class CommentService {
     };
     freezeComment = async (req, res) => {
         const { id } = req.params;
-        const commentExists = await this.commentRepository.exists({ _id: id }, {}, { populate: [
+        const commentExists = await this.commentRepository.exists({ _id: id }, {}, {
+            populate: [
                 { path: "postId", select: "userId" }
-            ] });
+            ]
+        });
         if (!commentExists) {
             throw new utils_1.NotFoundException("Comment not found");
         }
@@ -56,14 +67,16 @@ class CommentService {
             throw new utils_1.UnauthorizedException("You are not authorized to freeze this comment");
         }
         await this.commentRepository.update({ _id: id }, { deletedAt: Date.now(), frozen: true });
-        // TODO: freeze replies
+        await this.commentRepository.update({ parentId: id }, { deletedAt: Date.now(), frozen: true });
         return res.status(200).json({ success: true, message: "Comment frozen successfully" });
     };
     deleteComment = async (req, res) => {
         const { id } = req.params;
-        const commentExists = await this.commentRepository.exists({ _id: id }, {}, { populate: [
+        const commentExists = await this.commentRepository.exists({ _id: id }, {}, {
+            populate: [
                 { path: "postId", select: "userId" }
-            ] });
+            ]
+        });
         if (!commentExists) {
             throw new utils_1.NotFoundException("Comment not found");
         }
@@ -77,9 +90,11 @@ class CommentService {
     updateComment = async (req, res) => {
         const { id } = req.params;
         const updateCommentDTO = req.body;
-        const commentExists = await this.commentRepository.exists({ _id: id }, {}, { populate: [
+        const commentExists = await this.commentRepository.exists({ _id: id }, {}, {
+            populate: [
                 { path: "postId", select: "userId" }
-            ] });
+            ]
+        });
         if (!commentExists || commentExists.frozen) {
             throw new utils_1.NotFoundException("Comment not found");
         }
