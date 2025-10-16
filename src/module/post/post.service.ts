@@ -24,6 +24,20 @@ class PostService {
         const userId = req.user!._id.toString();
 
         await addReactionProvider(this.postRepository, id!, reaction, userId)
+
+        const post = await this.postRepository.getOne({ _id: id }, {}, {});
+
+        if (!post) {
+            throw new NotFoundException("Post not found");
+        }
+
+        if (post.frozen && post.userId.toString() == req.user!._id.toString()) {
+            return res.status(200).json({ message: "frozen by you", success: true, data: { post } })
+        }
+
+        if (post.frozen) {
+            throw new NotFoundException("Post not found");
+        }
     
         return res.sendStatus(204)
     }
