@@ -42,14 +42,15 @@ const validation_middleware_1 = require("../../middleware/validation.middleware"
 const userValidation = __importStar(require("./user.validation"));
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const router = (0, express_1.Router)();
+router.get("/getBlockList", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.getBlockList);
 router.get("/:id", user_service_1.default.getProfile);
 router.put("/updateProfile", (0, validation_middleware_1.isValid)(userValidation.updateUserSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateProfile);
+router.put("/updateEmailVerification", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateEmailVerification);
 router.put("/updateEmail", (0, validation_middleware_1.isValid)(userValidation.updateEmailSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateEmail);
 router.put("/updateTwoStepVerification", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updateTwoStepVerification);
 router.put("/updatePassword", (0, validation_middleware_1.isValid)(userValidation.updatePasswordSchema), (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.updatePassword);
 router.put("/blockUser/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.blockUser);
 router.put("/unblockUser/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.unblockUser);
-router.get("/getBlockList/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.getBlockList);
 router.post("/sendFriendRequest/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.sendFriendRequest);
 router.post("/acceptFriendRequest/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.acceptFriendRequest);
 router.post("/rejectFriendRequest/:id", (0, auth_middleware_1.isAuthenticated)(), user_service_1.default.rejectFriendRequest);

@@ -10,7 +10,7 @@ class UserService {
     }
 
     public getProfile = async (req: Request, res: Response) => {
-        const user = await this.userRepository.getOne({ _id: req.params.id });
+        const user = await this.userRepository.getOne({ _id: req.params.id }, {id: 1, fullName: 1, fristName: 1, lastName: 1, profilePicture: 1, email: 1, role: 1, gender: 1, createdAt: 1}, {});
 
         if (!user || user.deletedAt ) {
             throw new NotFoundException("User not found");
@@ -47,17 +47,12 @@ class UserService {
         });
     }
 
-    public updateEmail = async (req: Request, res: Response) => {
-        const updateEmailDto : UpdateEmailDTO = {
-            email: req.body.email,
-            otp: generateOTP(),
-            expiryTime: generateExpiryTime(5 * 60 * 1000),
-            isVerified: false
-        };
-
+    public updateEmailVerification = async (req: Request, res: Response) => {
         const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
         
         const user = await this.userRepository.getOne({ _id: userId });
+        const newEmail = req.body.email;
+        const emailExists = await this.userRepository.getOne({ email: newEmail });
 
         if (!user) {
             throw new NotFoundException("User not found");
@@ -66,19 +61,78 @@ class UserService {
         if ( user._id.toString() != userId.toString()) {
             throw new UnauthorizedException("You are not authorized to update this user");
         }
-        
-        const updatedUser = await this.userRepository.update({ _id: userId }, updateEmailDto);
+
+        if (user.email == newEmail) {
+            throw new ForbiddenException("New email cannot be the same as old email");
+        }
+
+        if (emailExists) {
+            throw new ForbiddenException("Email already exists");
+        }
+
+        const otp = generateOTP();
+        const expiryTime = generateExpiryTime(5 * 60 * 1000);
+
+        await this.userRepository.update({ _id: user._id }, { otp, otpExpiry: expiryTime });
 
         await sendEmail({
-                            to: updateEmailDto.email,
-                            subject: "Verify your email",
-                            html: `<h1>Verify your new email</h1>
-                            <p>Your confirmation -otp- code is: <b><mark>${updateEmailDto.otp}</mark></b></p>
-                            <p><em>OTP will expire in <strong>5 minutes</strong></em></p>`
-                        });
+            to: user.email,
+            subject: "Email verification",
+            html: `<h1>Email verification</h1>
+            <p>Your confirmation -otp- code is: <b><mark>${otp}</mark></b></p>
+            <p><em>OTP will expire in <strong>5 minutes</strong></em></p>`
+        });
+
+        return res.status(200)
+            .json({
+                message: "check your email for OTP",
+                success: true
+            });
+    }
+
+    public updateEmail = async (req: Request, res: Response) => {
+        
+        const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
+        
+        const user = await this.userRepository.getOne({ _id: userId });
+        const otp = await this.userRepository.getOne({ _id: userId }, { otp: 1 }, {});
+        const expiryTime = await this.userRepository.getOne({ _id: userId }, { otpExpiry: 1 }, {});
+        
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+        const updateEmailDto : UpdateEmailDTO = {
+            email: req.body.email,
+            otp: otp!.otp as unknown as string,
+            expiryTime: expiryTime!.otpExpiry as unknown as Date,
+            isVerified: true
+        };
+        
+
+        if ( user._id.toString() != userId.toString()) {
+            throw new UnauthorizedException("You are not authorized to update this user");
+        }
+
+        if (!otp) {
+            throw new NotFoundException("OTP not found");
+        }
+
+        if (!expiryTime!.otpExpiry) {
+            throw new NotFoundException("OTP not found");
+        }
+
+        if (otp.otp != updateEmailDto.otp) {
+            throw new ForbiddenException("Invalid OTP");
+        }
+
+        if (Date.now() > new Date(expiryTime!.otpExpiry as unknown as Date).getTime()) {
+            throw new ForbiddenException("OTP expired");
+        }
+
+        const updatedUser = await this.userRepository.update({ _id: userId }, updateEmailDto);
 
         return res.status(201).json({
-            message: "email updated successfully, Please check your email for verification",
+            message: "email updated successfully",
             success: true,
             data: updatedUser
         });
@@ -108,9 +162,9 @@ class UserService {
 
     public updatePassword = async (req: Request, res: Response) => {
         const updatePasswordDto : UpdatePasswordDTO = {
-            oldPassword: await generateHash(req.body.oldPassword),
-            newPassword: await generateHash(req.body.newPassword),
-            confirmPassword: await generateHash(req.body.confirmPassword)
+            oldPassword: req.body.oldPassword,
+            newPassword: req.body.newPassword,
+            confirmPassword: req.body.confirmPassword
         };
         
         const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
@@ -158,7 +212,7 @@ class UserService {
                 });
         }
         
-        await this.userRepository.update({ _id: userId }, { password: updatePasswordDto.newPassword });
+        await this.userRepository.update({ _id: userId }, { password: generateHash(updatePasswordDto.newPassword) });
 
         return res.status(201).json({
             message: "password updated successfully",
@@ -191,20 +245,20 @@ class UserService {
         if(currentUserId!.friendsRequest!.includes(blockDTO.recieverUserId)) {
             await this.userRepository.update(
                 { _id: blockDTO.currentUserId },
-                { friendsRequest: { $pull: blockDTO.recieverUserId } }
+                { $pull: { friendsRequest: blockDTO.recieverUserId } }
             );
         }
 
         if(currentUserId!.friends!.includes(blockDTO.recieverUserId)) {
             await this.userRepository.update(
                 { _id: blockDTO.currentUserId },
-                { friends: { $pull: blockDTO.recieverUserId } }
+                { $pull: { friends: blockDTO.recieverUserId } }
             );
         }
 
         await this.userRepository.update(
             { _id: blockDTO.currentUserId },
-            { blockList: blockedUser._id }
+            { $addToSet: { blockList: blockedUser._id } }
         );
 
         return res.status(200)
@@ -228,7 +282,7 @@ class UserService {
 
         await this.userRepository.update(
             { _id: blockDTO.currentUserId },
-            { blockList: { $pull: blockedUser._id } }
+            { $pull: { blockList: blockedUser._id } }
         );
 
         return res.status(200)
@@ -241,7 +295,8 @@ class UserService {
     public getBlockList = async (req: Request, res: Response) => {
         const userId = verifyToken(req.headers.authorization!)._id as unknown as ObjectId;
 
-        const blockList = await this.userRepository.exists({ _id: userId }, "blockList");
+        const blockList = await this.userRepository.exists({ _id: userId }, "blockList", { populate: [
+                    { path: "blockList", select: "fullName fristName lastName profilePicture _id" } ] });
 
         if (!blockList) {
             return res.status(200)
@@ -271,9 +326,13 @@ class UserService {
             throw new NotFoundException("User not found");
         }
 
+        if(user!.friendsRequest!.includes(friendRequestDTO.currentUserId)) {
+            throw new ForbiddenException("You have already sent a friend request");
+        }
+
         await this.userRepository.update(
             { _id: friendRequestDTO.recieverUserId },
-            { friendsRequest: { $push: friendRequestDTO.currentUserId } }
+            { $push: { friendsRequest: friendRequestDTO.currentUserId } }
         );
 
         return res.status(200)
@@ -301,19 +360,23 @@ class UserService {
             throw new NotFoundException("Friend request not found");
         }
 
+        if(currentUserId!.friends!.includes(friendRequestDTO.recieverUserId)) {
+            throw new ForbiddenException("You are already friends");
+        }
+
         await this.userRepository.update(
             { _id: friendRequestDTO.recieverUserId },
-            { friendsRequest: { $pull: friendRequestDTO.currentUserId } }
+            { $pull: { friendsRequest: friendRequestDTO.currentUserId } }
         );
 
         await this.userRepository.update(
             { _id: friendRequestDTO.currentUserId },
-            { friends: { $push: friendRequestDTO.recieverUserId } }
+            { $push: { friends: friendRequestDTO.recieverUserId } }
         );
 
         await this.userRepository.update(
             { _id: friendRequestDTO.recieverUserId },
-            { friends: { $push: friendRequestDTO.currentUserId } }
+            { $push: { friends: friendRequestDTO.currentUserId } }
         );
 
         return res.status(200)
@@ -326,7 +389,7 @@ class UserService {
     public rejectFriendRequest = async (req: Request, res: Response) => {
         const friendRequestDTO: userActionDTO = {
             currentUserId: verifyToken(req.headers.authorization!)._id as unknown as ObjectId,
-            recieverUserId: req.body.userId
+            recieverUserId: req.params.id as unknown as ObjectId
         };
 
         const currentUserId = await this.userRepository.getOne({ _id: friendRequestDTO.currentUserId });
@@ -343,7 +406,7 @@ class UserService {
 
         await this.userRepository.update(
             { _id: friendRequestDTO.currentUserId },
-            { friendsRequest: { $pull: friendRequestDTO.recieverUserId } }
+            { $pull: { friendsRequest: friendRequestDTO.recieverUserId } }
         );
 
         return res.status(200)
@@ -373,12 +436,12 @@ class UserService {
 
         await this.userRepository.update(
             { _id: removeFriendDto.currentUserId },
-            { friends: { $pull: removeFriendDto.recieverUserId } }
+            { $pull: { friends: removeFriendDto.recieverUserId } }
         );
 
         await this.userRepository.update(
             { _id: removeFriendDto.recieverUserId },
-            { friends: { $pull: removeFriendDto.currentUserId } }
+            { $pull: { friends: removeFriendDto.currentUserId } }
         );
 
         return res.status(200)

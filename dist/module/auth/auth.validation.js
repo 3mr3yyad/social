@@ -6,7 +6,7 @@ const utils_1 = require("../../utils");
 exports.registerSchema = zod_1.z.object({
     fullName: zod_1.z.string().min(3).max(50),
     email: zod_1.z.email(),
-    phoneNumber: zod_1.z.string().length(11).regex(/^\+201[0125][0-9]{8}$/),
+    phoneNumber: zod_1.z.string().length(11).regex(/^\+201[0125][0-9]{8}$/).optional(),
     password: zod_1.z.string().min(8).max(50),
     gender: zod_1.z.enum(utils_1.GENDER),
 });
