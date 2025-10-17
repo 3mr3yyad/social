@@ -1,11 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bootStrap = bootStrap;
 const DB_1 = require("./DB");
 const module_1 = require("./module");
+const cors_1 = __importDefault(require("cors"));
 function bootStrap(app, express) {
     (0, DB_1.connectDB)();
     app.use(express.json());
+    app.use((0, cors_1.default)({ origin: "*" }));
     // auth
     app.use("/auth", module_1.authRouter);
     // user

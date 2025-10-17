@@ -1,13 +1,27 @@
 import { Server as HttpServer } from "node:http";
 import { Server, Socket } from "socket.io";
 import { socketAuth } from "./middleware";
+import { validateMessage } from "./validation";
+
+const connectedUsers = new Map<string, string>();
 
 export const initSocketIo = (server: HttpServer) => {
     const io = new Server(server, { cors: { origin: "*" } });
     io.use(socketAuth)
 
     io.on("connection", (socket: Socket) => {
-        console.log("new user connected");
+        connectedUsers.set(socket.data.user.id, socket.id);
+        console.log(connectedUsers, "connectedUsers");
+        socket.on("sendMessage", (data: { message: string, destId: string }) => {
+            const destSocketId = connectedUsers.get(data.destId);
+            validateMessage(data);
+            if (!destSocketId) {
+                socket.emit("errorMessage", "User not found");
+                return;
+            }
+            socket.emit("successMessage", data)
+            io.to(destSocketId).emit("receiveMessage", data)
+        })
     });
 
 }

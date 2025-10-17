@@ -10,7 +10,9 @@ class UserService {
     }
 
     public getProfile = async (req: Request, res: Response) => {
-        const user = await this.userRepository.getOne({ _id: req.params.id }, {id: 1, fullName: 1, fristName: 1, lastName: 1, profilePicture: 1, email: 1, role: 1, gender: 1, createdAt: 1}, {});
+        const user = await this.userRepository.getOne({ _id: req.params.id },
+            { id: 1, fullName: 1, fristName: 1, lastName: 1, profilePicture: 1, email: 1, role: 1, gender: 1, createdAt: 1, friends: 1 },
+            { populate: [{ path: "friends", select: "fullName fristName lastName profilePicture _id" } ] });
 
         if (!user || user.deletedAt ) {
             throw new NotFoundException("User not found");

@@ -2,10 +2,12 @@ import type {  Express, Request, Response, NextFunction } from "express";
 import { connectDB } from "./DB";
 import { AppError } from "./utils";
 import { authRouter, commentRouter, postRouter, userRouter } from "./module";
+import cors from "cors";
 
 export function bootStrap(app: Express, express: any) {
     connectDB();
     app.use(express.json());
+    app.use(cors({ origin: "*" }));
 
     // auth
     app.use("/auth", authRouter);
