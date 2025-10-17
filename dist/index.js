@@ -7,10 +7,12 @@ const express_1 = __importDefault(require("express"));
 const app_controller_1 = require("./app.controller");
 const dotenv_1 = require("dotenv");
 const dev_config_1 = require("./config/env/dev.config");
+const socket_io_1 = require("./socket-io");
 (0, dotenv_1.config)();
 const app = (0, express_1.default)();
 const port = dev_config_1.devConfig.PORT || 3000;
 (0, app_controller_1.bootStrap)(app, express_1.default);
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+const server = app.listen(port, () => {
+    console.log(`App listening on port ${port}`);
 });
+(0, socket_io_1.initSocketIo)(server);

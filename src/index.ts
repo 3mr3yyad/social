@@ -2,6 +2,7 @@ import express from "express";
 import { bootStrap } from "./app.controller";
 import {config} from "dotenv";
 import { devConfig } from "./config/env/dev.config";
+import { initSocketIo } from "./socket-io";
 
 config();
 
@@ -10,7 +11,8 @@ const port = devConfig.PORT || 3000;
 
 bootStrap(app, express);
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
+const server = app.listen(port, () => {
+    console.log(`App listening on port ${port}`)
 })
 
+initSocketIo(server);
