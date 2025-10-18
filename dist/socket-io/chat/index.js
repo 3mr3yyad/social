@@ -13,6 +13,18 @@ const sendMessage = (socket, io, connectedUsers) => {
         }
         socket.emit("successMessage", data);
         io.to(destSocketId).emit("receiveMessage", data);
+        // show online status to friends
+        const userRepository = new DB_1.UserRepository();
+        const friends = await userRepository.getOne({ _id: socket.data.user.id }, { friends: 1 });
+        if (!friends)
+            return;
+        const friendSocketIds = (friends.friends ?? [])
+            .map((friend) => connectedUsers.get(friend.toString()))
+            .filter((id) => !!id);
+        if (friendSocketIds.length) {
+            io.to(friendSocketIds).emit("online", socket.data.user.id);
+        }
+        // save message
         const messageRepository = new DB_1.MessageRepository();
         const senderId = socket.data.user.id;
         const createdMessage = await messageRepository.create({
@@ -30,6 +42,8 @@ const sendMessage = (socket, io, connectedUsers) => {
         else {
             await chatRepository.update({ _id: chat._id }, { $push: { messages: createdMessage._id } });
         }
+        // show typing status to dest user
+        io.to(destSocketId).emit("typing", socket.data.user.id);
     };
 };
 exports.sendMessage = sendMessage;

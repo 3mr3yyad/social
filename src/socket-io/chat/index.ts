@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { validateMessage } from "../validation";
-import { ChatRepository, MessageRepository } from "../../DB";
+import { ChatRepository, MessageRepository, UserRepository } from "../../DB";
 import { ObjectId } from "mongoose";
 
 export const sendMessage = (socket: Socket, io: Server, connectedUsers: Map<string, string>) => {
@@ -13,7 +13,22 @@ export const sendMessage = (socket: Socket, io: Server, connectedUsers: Map<stri
             }
             socket.emit("successMessage", data)
         io.to(destSocketId).emit("receiveMessage", data)
-        
+
+        // show online status to friends
+        const userRepository = new UserRepository()
+        const friends = await userRepository.getOne({ _id: socket.data.user.id }, { friends: 1 })
+
+        if (!friends) return;
+
+        const friendSocketIds = (friends.friends ?? [])
+            .map((friend) => connectedUsers.get(friend.toString()))
+            .filter((id): id is string => !!id)
+
+        if (friendSocketIds.length) {
+            io.to(friendSocketIds).emit("online", socket.data.user.id)
+        }
+
+        // save message
         const messageRepository = new MessageRepository()
         const senderId = socket.data.user.id
         const createdMessage = await messageRepository.create({
@@ -33,5 +48,8 @@ export const sendMessage = (socket: Socket, io: Server, connectedUsers: Map<stri
                 { _id: chat._id },
                 { $push: { messages: createdMessage._id} })
         }
+
+        // show typing status to dest user
+        io.to(destSocketId).emit("typing", socket.data.user.id)
     }
 }
