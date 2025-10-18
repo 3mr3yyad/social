@@ -6,7 +6,7 @@ class ChatService {
     getChat = async (req, res) => {
         const { userId } = req.params;
         const loggedUser = req.user._id;
-        const chat = await this.chatRepository.getOne({ users: { $all: [loggedUser, userId] } });
+        const chat = await this.chatRepository.getOne({ users: { $all: [loggedUser, userId] } }, {}, { populate: [{ path: "messages" }] });
         if (!chat) {
             return res.status(200).json({ message: "empty chat", success: true, data: null });
         }

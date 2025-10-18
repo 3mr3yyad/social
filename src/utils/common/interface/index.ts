@@ -59,7 +59,7 @@ export interface IComment {
 }
 
 export interface IMessage {
-    _id: ObjectId;
+    readonly _id: ObjectId;
     senderId: ObjectId;
     content: string;
     reactions?: IReaction[];
@@ -67,7 +67,7 @@ export interface IMessage {
 }
 
 export interface IChat {
-    _id: ObjectId;
+    readonly _id: ObjectId;
     users: ObjectId[];
     messages: ObjectId[];
 }
