@@ -19,3 +19,5 @@ __exportStar(require("./model/user/user.repository"), exports);
 __exportStar(require("./model/post/post.repository"), exports);
 __exportStar(require("./model/comment/comment.repository"), exports);
 __exportStar(require("./model/common"), exports);
+__exportStar(require("./model/chat/chat.repository"), exports);
+__exportStar(require("./model/message/message.repository"), exports);

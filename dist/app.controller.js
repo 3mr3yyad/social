@@ -19,6 +19,8 @@ function bootStrap(app, express) {
     app.use("/post", module_1.postRouter);
     // comment
     app.use("/comment", module_1.commentRouter);
+    // chat
+    app.use("/chat", module_1.chatRouter);
     app.use("/{*dummy}", (req, res) => {
         return res.status(404).send({ message: "Not Found", success: false });
     });

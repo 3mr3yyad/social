@@ -58,6 +58,20 @@ export interface IComment {
     frozen?: boolean;
 }
 
+export interface IMessage {
+    _id: ObjectId;
+    senderId: ObjectId;
+    content: string;
+    reactions?: IReaction[];
+    attachments?: IAttachment[];
+}
+
+export interface IChat {
+    _id: ObjectId;
+    users: ObjectId[];
+    messages: ObjectId[];
+}
+
 export interface IPayLoad extends JwtPayload {
     _id: string;
     role: SYS_ROLE;

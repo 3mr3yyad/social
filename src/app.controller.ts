@@ -1,7 +1,7 @@
 import type {  Express, Request, Response, NextFunction } from "express";
 import { connectDB } from "./DB";
 import { AppError } from "./utils";
-import { authRouter, commentRouter, postRouter, userRouter } from "./module";
+import { authRouter, chatRouter, commentRouter, postRouter, userRouter } from "./module";
 import cors from "cors";
 
 export function bootStrap(app: Express, express: any) {
@@ -20,6 +20,9 @@ export function bootStrap(app: Express, express: any) {
 
     // comment
     app.use("/comment", commentRouter);
+
+    // chat
+    app.use("/chat", chatRouter);
 
 
     app.use("/{*dummy}", (req: Request, res: Response) => {
