@@ -13,6 +13,9 @@ class AbstractRepository {
     async getOne(filter, projection, options) {
         return await this.model.findOne(filter, projection, options);
     }
+    async getAll(filter, projection, options) {
+        return await this.model.find(filter, projection, options);
+    }
     async exists(filter, projection, options) {
         return await this.model.findOne(filter, projection, options);
     }
